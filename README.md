@@ -11,7 +11,111 @@ Part of the [Overlook framework](https://overlookjs.github.io/).
 
 ## Usage
 
-This module is under development and not ready for use yet.
+Use to add an HTTP server to an application.
+
+The server is a basic NodeJS HTTP server with no middleware - middleware needs to be added by other plugins.
+
+Typically, you would use this plugin on the root route of the application and use something like [@overlook/plugin-path](https://www.npmjs.com/package/@overlook/plugin-path) to route the requests to the right route in the router tree.
+
+But it's also possible to create [multiple servers](#multiple-servers) listening on different ports on different routes, or use another plugin to add e.g. a WebSocket server too.
+
+### Set port
+
+Set `[PORT]` or define `[GET_PORT]()` method.
+
+```js
+const Route = require('@overlook/route');
+const httpPlugin = require('@overlook/plugin-serve-http');
+const { PORT } = httpPlugin;
+
+const HttpRoute = Route.extend( httpPlugin );
+
+const route = new HttpRoute( {
+  [PORT]: 3000
+} );
+```
+
+```js
+const Route = require('@overlook/route');
+const httpPlugin = require('@overlook/plugin-serve-http');
+const { GET_PORT } = httpPlugin;
+
+const HttpRoute = Route.extend( httpPlugin );
+
+class HttpOnPort3000Route extends HttpRoute {
+  [GET_PORT]() {
+    return 3000;
+  }
+}
+
+const route = new HttpOnPort3000Route();
+```
+
+### Start server
+
+`plugin-serve-http` uses [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start).
+
+Start the server by using `[START]()` method provided by [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start).
+
+```js
+const { START } = require('@overlook/plugin-start');
+await router[START]();
+```
+
+### Stop server
+
+Stop the server by using `[STOP]()` method provided by [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start).
+
+```js
+const { STOP } = require('@overlook/plugin-start');
+await router[STOP]();
+```
+
+### Handling requests
+
+`route.handle()` will be called with request object `req` when the server receives requests.
+
+NB Unlike NodeJS's and [express](https://expressjs.com/)'s request handlers, Overlook uses a single request object `req`. Response object `res` can be accessed as `req.res`. This is to allow flexibility for routing other kinds of connections (e.g. WebSocket) which don't follow the same request-response pattern as HTTP.
+
+Typically, you'd use something like [@overlook/plugin-path](https://www.npmjs.com/package/@overlook/plugin-path) to handle requests, but you can write your own handler too.
+
+`req` and `res` are plain NodeJS [IncomingMessage](https://nodejs.org/dist/latest-v14.x/docs/api/http.html#http_class_http_incomingmessage) and [ServerResponse](https://nodejs.org/dist/latest-v14.x/docs/api/http.html#http_class_http_serverresponse) objects. You need to parse the request body, query string, cookies etc yourself, or use plugins to do this.
+
+```js
+const Route = require('@overlook/route');
+const httpPlugin = require('@overlook/plugin-serve-http');
+const { PORT } = httpPlugin;
+
+const HttpRoute = Route.extend( httpPlugin );
+
+class MyHttpRoute extends HttpRoute {
+  async handle( req ) {
+    // Delegate to superior handlers
+    // NB No `await` here
+    const result = super.handle( req );
+    if ( result != null ) return result;
+
+    // Some async processing
+    const responseBody = await Promise.resolve(
+      `Serving ${req.url}`
+    );
+
+    // Send response
+    const { res } = req;
+    res.end( responseBody );
+  }
+}
+
+const route = new MyHttpRoute( {
+  PORT: 3000
+} );
+```
+
+### Multiple servers
+
+Servers can be attached to any route in the router tree, not just the route.
+
+However, to ensure `[START]` and `[STOP]` calls are propogated through the router tree to reach these routes, make sure the root route and all intermediary routes use the [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start) plugin.
 
 ## Versioning
 
