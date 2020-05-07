@@ -62,6 +62,8 @@ const { START } = require('@overlook/plugin-start');
 await router[START]();
 ```
 
+Server will be started up last, after any child routes with `[START_ROUTE]()` methods have completed start-up, so the whole app is ready to serve requests before the server starts.
+
 ### Stop server
 
 Stop the server by using `[STOP]()` method provided by [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start).
@@ -70,6 +72,8 @@ Stop the server by using `[STOP]()` method provided by [@overlook/plugin-start](
 const { STOP } = require('@overlook/plugin-start');
 await router[STOP]();
 ```
+
+Server will be stopped immediately, before any child routes with `[STOP_ROUTE]()` methods have commenced their shutdown. This prevents requests continuing to come in during the shutdown process.
 
 ### Handling requests
 

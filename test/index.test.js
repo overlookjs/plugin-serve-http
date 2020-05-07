@@ -11,16 +11,18 @@
 const http = require('http'),
 	Route = require('@overlook/route'),
 	Plugin = require('@overlook/plugin'),
-	{START, STOP} = require('@overlook/plugin-start'),
+	startPlugin = require('@overlook/plugin-start'),
+	{START, STOP, START_ROUTE, STOP_ROUTE} = startPlugin,
 	axios = require('axios'),
 	serveHttpPlugin = require('@overlook/plugin-serve-http');
 
 const {SERVER, PORT, GET_PORT} = serveHttpPlugin;
 
+// Imports
+const {tick, defer, spy} = require('./support/utils.js');
+
 // Init
 require('./support/index.js');
-
-const spy = jest.fn;
 
 // Constants
 const TEST_PORT = 5000;
@@ -76,6 +78,54 @@ describe('methods', () => {
 
 			it('records HTTP server as [SERVER]', () => {
 				expect(route[SERVER]).toBeInstanceOf(http.Server);
+			});
+		});
+
+		describe('starts server', () => {
+			let promise, child1, child2, deferred1, deferred2;
+			beforeEach(async () => {
+				route = new ServerRoute({[PORT]: TEST_PORT});
+
+				const StartRoute = Route.extend(startPlugin);
+
+				child1 = new StartRoute();
+				deferred1 = defer();
+				child1[START_ROUTE] = spy(() => deferred1.promise);
+				route.attachChild(child1);
+
+				child2 = new StartRoute();
+				deferred2 = defer();
+				child2[START_ROUTE] = spy(() => deferred2.promise);
+				route.attachChild(child2);
+
+				route.init();
+				promise = route[START]();
+			});
+
+			afterEach(() => promise);
+			afterEach((done) => {
+				route[SERVER].close(done);
+			});
+
+			it('after all children have started', async () => {
+				const resolveSpy = spy();
+				promise.then(resolveSpy, resolveSpy);
+
+				await tick();
+				expect(child1[START_ROUTE]).toHaveBeenCalledTimes(1);
+				expect(child2[START_ROUTE]).toHaveBeenCalledTimes(1);
+				expect(resolveSpy).not.toHaveBeenCalled();
+				expect(route[SERVER]).toBeUndefined();
+
+				deferred1.resolve();
+				await tick();
+				expect(resolveSpy).not.toHaveBeenCalled();
+				expect(route[SERVER]).toBeUndefined();
+
+				deferred2.resolve();
+				await tick();
+				expect(resolveSpy).toHaveBeenCalledTimes(1);
+				expect(route[SERVER]).not.toBeUndefined();
 			});
 		});
 
@@ -213,25 +263,51 @@ describe('methods', () => {
 		let server;
 		beforeEach(async () => {
 			route[PORT] = TEST_PORT;
-			await route[START]();
-			server = route[SERVER];
 		});
 
 		it('stops server listening', async () => {
+			await route[START]();
+			server = route[SERVER];
 			expect(server.listening).toBeTrue();
 			await route[STOP]();
 			expect(server.listening).toBeFalse();
 		});
 
 		it('prevents server receiving connections', async () => {
+			await route[START]();
+			server = route[SERVER];
 			await route[STOP]();
 			await expect(axios(`http://localhost:${TEST_PORT}/`)).rejects.toThrow('connect ECONNREFUSED');
 		});
 
 		it('clears [SERVER]', async () => {
+			await route[START]();
+			server = route[SERVER];
 			expect(route[SERVER]).toBe(server);
 			await route[STOP]();
 			expect(route[SERVER]).toBeUndefined();
+		});
+
+		it('stops server before stopping children', async () => {
+			route = new ServerRoute();
+
+			const StartRoute = Route.extend(startPlugin);
+			const child = new StartRoute();
+			child[STOP_ROUTE] = spy();
+			route.attachChild(child);
+
+			route[PORT] = TEST_PORT;
+			route.init();
+			await route[START]();
+			server = route[SERVER];
+
+			expect(server.listening).toBeTrue();
+			const promise = route[STOP]();
+			expect(server.listening).toBeFalse();
+
+			expect(child[STOP_ROUTE]).not.toHaveBeenCalled();
+			await promise;
+			expect(child[STOP_ROUTE]).toHaveBeenCalledTimes(1);
 		});
 	});
 });
