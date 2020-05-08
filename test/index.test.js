@@ -341,14 +341,13 @@ describe('methods', () => {
 	});
 
 	describe('[STOP]', () => {
-		let server;
 		beforeEach(async () => {
 			route[PORT] = TEST_PORT;
 		});
 
 		it('stops server listening', async () => {
 			await route[START]();
-			server = route[SERVER];
+			const server = route[SERVER];
 			expect(server.listening).toBeTrue();
 			await route[STOP]();
 			expect(server.listening).toBeFalse();
@@ -356,14 +355,13 @@ describe('methods', () => {
 
 		it('prevents server receiving connections', async () => {
 			await route[START]();
-			server = route[SERVER];
 			await route[STOP]();
 			await expect(axios(`http://localhost:${TEST_PORT}/`)).rejects.toThrow('connect ECONNREFUSED');
 		});
 
 		it('clears [SERVER]', async () => {
 			await route[START]();
-			server = route[SERVER];
+			const server = route[SERVER];
 			expect(route[SERVER]).toBe(server);
 			await route[STOP]();
 			expect(route[SERVER]).toBeUndefined();
@@ -380,7 +378,7 @@ describe('methods', () => {
 			route[PORT] = TEST_PORT;
 			route.init();
 			await route[START]();
-			server = route[SERVER];
+			const server = route[SERVER];
 
 			expect(server.listening).toBeTrue();
 			const promise = route[STOP]();
