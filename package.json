@@ -1,6 +1,6 @@
 {
   "name": "@overlook/plugin-serve-http",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Overlook framework HTTP server plugin",
   "main": "index.js",
   "files": [

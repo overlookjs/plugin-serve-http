@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.1
+
+Features:
+
+* Graceful shutdown
+
+No code:
+
+* Code comments
+
+Tests:
+
+* Improve stop test
+* Refactor stop tests
+
 ## 0.3.0
 
 Breaking changes:
