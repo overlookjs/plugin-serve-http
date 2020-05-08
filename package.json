@@ -21,7 +21,8 @@
     "@overlook/plugin-request": "^0.1.0",
     "@overlook/plugin-start": "^0.1.2",
     "@overlook/route": "^0.5.1",
-    "is-it-type": "^4.0.0"
+    "is-it-type": "^4.0.0",
+    "on-finished": "^2.3.0"
   },
   "devDependencies": {
     "@overlookmotel/eslint-config": "^7.1.2",

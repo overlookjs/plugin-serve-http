@@ -22,7 +22,7 @@ const {
 } = serveHttpPlugin;
 
 // Imports
-const {tick, defer, spy} = require('./support/utils.js');
+const {tick, defer, spy, promiseSpy, waitFor} = require('./support/utils.js');
 
 // Init
 require('./support/index.js');
@@ -40,7 +40,8 @@ describe('plugin', () => {
 	describe('exposes symbols', () => {
 		it.each([
 			'SERVER', 'PORT', 'GET_PORT',
-			'REQ', 'RES', 'METHOD', 'URL', 'URL_OBJ', 'QUERY_STR', 'QUERY'
+			'REQ', 'RES', 'METHOD', 'URL', 'URL_OBJ', 'QUERY_STR', 'QUERY',
+			'SOCKETS', 'IS_IDLE', 'IS_STOPPING'
 		])('%s', (name) => {
 			expect(typeof serveHttpPlugin[name]).toBe('symbol');
 		});
@@ -127,8 +128,7 @@ describe('methods', () => {
 			});
 
 			it('after all children have started', async () => {
-				const resolveSpy = spy();
-				promise.then(resolveSpy, resolveSpy);
+				const resolveSpy = promiseSpy(promise);
 
 				await tick();
 				expect(child1[START_ROUTE]).toHaveBeenCalledTimes(1);
@@ -386,6 +386,74 @@ describe('methods', () => {
 			expect(child[STOP_ROUTE]).not.toHaveBeenCalled();
 			await promise;
 			expect(child[STOP_ROUTE]).toHaveBeenCalledTimes(1);
+		});
+
+		it('waits for in flight request to finish before shutdown', async () => {
+			let res;
+			route.handle = (req) => { res = req[RES]; };
+			await route[START]();
+			const server = route[SERVER];
+
+			const axiosPromise = axios(`http://localhost:${TEST_PORT}/`);
+			await waitFor(() => res); // Wait for request to hit server
+
+			expect(server.listening).toBeTrue();
+			const stopPromise = route[STOP]();
+			const stopResolveSpy = promiseSpy(stopPromise);
+			expect(server.listening).toBeFalse();
+
+			await tick();
+			expect(stopResolveSpy).not.toHaveBeenCalled();
+
+			res.end('Done');
+			await tick();
+			expect(stopResolveSpy).toHaveBeenCalledTimes(1);
+
+			const axiosRes = await axiosPromise;
+			expect(axiosRes.data).toBe('Done');
+
+			await stopPromise;
+		});
+
+		it('waits for in flight keep-alive request to finish before shutdown', async () => {
+			let res;
+			route.handle = (req) => { res = req[RES]; };
+			await route[START]();
+			const server = route[SERVER];
+
+			const axiosPromise = axios(`http://localhost:${TEST_PORT}/`, {
+				httpAgent: new http.Agent({keepAlive: true})
+			});
+			await waitFor(() => res); // Wait for request to hit server
+
+			expect(server.listening).toBeTrue();
+			const stopPromise = route[STOP]();
+			const stopResolveSpy = promiseSpy(stopPromise);
+			expect(server.listening).toBeFalse();
+
+			await tick();
+			expect(stopResolveSpy).not.toHaveBeenCalled();
+
+			res.end('Done');
+			await tick();
+			expect(stopResolveSpy).toHaveBeenCalledTimes(1);
+
+			const axiosRes = await axiosPromise;
+			expect(axiosRes.data).toBe('Done');
+
+			await stopPromise;
+		});
+
+		it('terminates idle keep-alive connections', async () => {
+			route.handle = req => req[RES].end(`serving ${req[URL_STR]}`);
+			await route[START]();
+
+			await axios(`http://localhost:${TEST_PORT}/`, {
+				httpAgent: new http.Agent({keepAlive: true})
+			});
+
+			await route[STOP]();
+			expect(route[SERVER]).toBeUndefined();
 		});
 	});
 });

@@ -73,7 +73,9 @@ const { STOP } = require('@overlook/plugin-start');
 await router[STOP]();
 ```
 
-Server will be stopped immediately, before any child routes with `[STOP_ROUTE]()` methods have commenced their shutdown. This prevents requests continuing to come in during the shutdown process.
+Shutdown is graceful. Server immediately stops accepting new connections, and closes all current connections. Any requests currently in flight will be allowed to complete before their connection is closed.
+
+Server will be stopped before any child routes with `[STOP_ROUTE]()` methods have commenced their shutdown. This prevents disruption of last requests before shutdown.
 
 ### Handling requests
 
