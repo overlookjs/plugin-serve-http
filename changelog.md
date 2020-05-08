@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.0
+
+Breaking changes:
+
+* Call `.handle` with custom request object
+
+Dependencies:
+
+* Update `is-it-type` dependency
+
+Tests:
+
+* Test server is listening
+
+Dev:
+
+* Update dev dependencies
+
 ## 0.2.0
 
 Breaking changes:
