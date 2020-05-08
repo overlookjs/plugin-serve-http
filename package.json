@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@overlook/plugin": "^0.2.3",
+    "@overlook/plugin-request": "^0.1.0",
     "@overlook/plugin-start": "^0.1.2",
     "@overlook/route": "^0.5.1",
     "is-it-type": "^3.1.1"

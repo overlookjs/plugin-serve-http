@@ -30,7 +30,7 @@ const { PORT } = httpPlugin;
 
 const HttpRoute = Route.extend( httpPlugin );
 
-const route = new HttpRoute( {
+const router = new HttpRoute( {
   [PORT]: 3000
 } );
 ```
@@ -48,7 +48,7 @@ class HttpOnPort3000Route extends HttpRoute {
   }
 }
 
-const route = new HttpOnPort3000Route();
+const router = new HttpOnPort3000Route();
 ```
 
 ### Start server
@@ -77,18 +77,30 @@ Server will be stopped immediately, before any child routes with `[STOP_ROUTE]()
 
 ### Handling requests
 
-`route.handle()` will be called with request object `req` when the server receives requests.
+When the server receives requests, `.handle()` will be called on the route with a request object.
 
-NB Unlike NodeJS's and [express](https://expressjs.com/)'s request handlers, Overlook uses a single request object `req`. Response object `res` can be accessed as `req.res`. This is to allow flexibility for routing other kinds of connections (e.g. WebSocket) which don't follow the same request-response pattern as HTTP.
+Request objects have the following properties:
+
+* `[REQ_TYPE]`: `'HTTP'`
+* `[REQ]`: NodeJS native [IncomingMessage](https://nodejs.org/dist/latest-v14.x/docs/api/http.html#http_class_http_incomingmessage) object
+* `[RES]`: NodeJS native [ServerResponse](https://nodejs.org/dist/latest-v14.x/docs/api/http.html#http_class_http_serverresponse) object
+* `[METHOD]`: HTTP method e.g. `'GET'`, `'POST'`
+* `[URL]`: Request URL (not including protocol, host, or port) e.g. `'/abc/def?foo=bar'`
+* `[URL_OBJ]`: Parsed [URL](https://nodejs.org/api/url.html#url_class_url) object
+* `[PATH]`: Request path (not including query string) e.g. `'/abc/def'`
+* `[QUERY_STR]`: Request query string e.g. `'?foo=bar'`
+* `[QUERY]`: Query object e.g. `{ foo: 'bar' }`
+
+All the above symbols (`[REQ]` etc) are exported as properties of this plugin, except `[REQ_TYPE]` and `[PATH]` which are exported by [@overlook/plugin-request](https://www.npmjs.com/package/@overlook/plugin-request).
 
 Typically, you'd use something like [@overlook/plugin-path](https://www.npmjs.com/package/@overlook/plugin-path) to handle requests, but you can write your own handler too.
 
-`req` and `res` are plain NodeJS [IncomingMessage](https://nodejs.org/dist/latest-v14.x/docs/api/http.html#http_class_http_incomingmessage) and [ServerResponse](https://nodejs.org/dist/latest-v14.x/docs/api/http.html#http_class_http_serverresponse) objects. You need to parse the request body, query string, cookies etc yourself, or use plugins to do this.
+Request body, auth and cookies are not parsed - you need to parse them yourself from `[REQ]`, or use plugins to do this.
 
 ```js
 const Route = require('@overlook/route');
 const httpPlugin = require('@overlook/plugin-serve-http');
-const { PORT } = httpPlugin;
+const { PORT, METHOD, URL, RES } = httpPlugin;
 
 const HttpRoute = Route.extend( httpPlugin );
 
@@ -101,23 +113,23 @@ class MyHttpRoute extends HttpRoute {
 
     // Some async processing
     const responseBody = await Promise.resolve(
-      `Serving ${req.url}`
+      `Serving ${req[METHOD]} ${req[URL]}`
     );
 
     // Send response
-    const { res } = req;
+    const res = req[RES];
     res.end( responseBody );
   }
 }
 
-const route = new MyHttpRoute( {
+const router = new MyHttpRoute( {
   PORT: 3000
 } );
 ```
 
 ### Multiple servers
 
-Servers can be attached to any route in the router tree, not just the route.
+Servers can be attached to any route in the router tree, not just the root.
 
 However, to ensure `[START]` and `[STOP]` calls are propogated through the router tree to reach these routes, make sure the root route and all intermediary routes use the [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start) plugin.
 

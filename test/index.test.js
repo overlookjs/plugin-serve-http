@@ -13,10 +13,13 @@ const http = require('http'),
 	Plugin = require('@overlook/plugin'),
 	startPlugin = require('@overlook/plugin-start'),
 	{START, STOP, START_ROUTE, STOP_ROUTE} = startPlugin,
+	{REQ_TYPE, PATH} = require('@overlook/plugin-request'),
 	axios = require('axios'),
 	serveHttpPlugin = require('@overlook/plugin-serve-http');
 
-const {SERVER, PORT, GET_PORT} = serveHttpPlugin;
+const {
+	SERVER, PORT, GET_PORT, REQ, RES, METHOD, URL_STR, URL_OBJ, QUERY_STR, QUERY
+} = serveHttpPlugin;
 
 // Imports
 const {tick, defer, spy} = require('./support/utils.js');
@@ -35,8 +38,16 @@ describe('plugin', () => {
 	});
 
 	describe('exposes symbols', () => {
-		it.each(['SERVER', 'PORT', 'GET_PORT'])('%s', (name) => {
+		it.each([
+			'SERVER', 'PORT', 'GET_PORT',
+			'REQ', 'RES', 'METHOD', 'URL', 'URL_OBJ', 'QUERY_STR', 'QUERY'
+		])('%s', (name) => {
 			expect(typeof serveHttpPlugin[name]).toBe('symbol');
+		});
+
+		it('URL_STR (alias of URL)', () => { // eslint-disable-line jest/lowercase-name
+			expect(typeof serveHttpPlugin.URL_STR).toBe('symbol');
+			expect(serveHttpPlugin.URL_STR).toBe(serveHttpPlugin.URL);
 		});
 	});
 });
@@ -163,7 +174,7 @@ describe('methods', () => {
 	describe('routes requests to `.handle()', () => {
 		beforeEach(async () => {
 			route[PORT] = TEST_PORT;
-			route.handle = spy(req => req.res.end(`serving ${req.url}`));
+			route.handle = spy(req => req[RES].end(`serving ${req[URL_STR]}`));
 			await route[START]();
 		});
 
@@ -177,42 +188,73 @@ describe('methods', () => {
 				// Sanity check
 				expect(route.handle).not.toHaveBeenCalled();
 
-				axiosRes = await axios(`http://localhost:${TEST_PORT}/abc`);
+				axiosRes = await axios(`http://localhost:${TEST_PORT}/abc/def?x=123&y=456`);
 			});
 
 			it('calls .handle()', () => {
 				expect(route.handle).toHaveBeenCalledTimes(1);
 			});
 
-			it('calls .handle() with req', () => {
-				expect(route.handle).toHaveBeenCalledTimes(1);
-				const args = route.handle.mock.calls[0];
-				expect(args).toBeArrayOfSize(1);
-				const req = args[0];
-				expect(req).toBeInstanceOf(http.IncomingMessage);
-			});
+			describe('calls .handle() with request', () => {
+				let req;
+				beforeEach(() => {
+					// Sanity check
+					expect(route.handle).toHaveBeenCalledTimes(1);
 
-			it('calls .handle() with req.method', () => {
-				expect(route.handle).toHaveBeenCalledTimes(1);
-				const req = route.handle.mock.calls[0][0];
-				expect(req.method).toBe('GET');
-			});
+					const args = route.handle.mock.calls[0];
 
-			it('calls .handle() with req.url', () => {
-				expect(route.handle).toHaveBeenCalledTimes(1);
-				const req = route.handle.mock.calls[0][0];
-				expect(req.url).toBe('/abc');
-			});
+					// Sanity check
+					expect(args).toBeArrayOfSize(1);
 
-			it('calls .handle() with req.res', () => {
-				expect(route.handle).toHaveBeenCalledTimes(1);
-				const req = route.handle.mock.calls[0][0];
-				expect(req.res).toBeInstanceOf(http.ServerResponse);
+					req = args[0];
+				});
+
+				it('object', () => {
+					expect(req).toBeObject();
+				});
+
+				it('with HTTP request as [REQ]', () => {
+					expect(req[REQ]).toBeInstanceOf(http.IncomingMessage);
+				});
+
+				it('with HTTP response as [RES]', () => {
+					expect(req[RES]).toBeInstanceOf(http.ServerResponse);
+				});
+
+				it("with 'HTTP' as [REQ_TYPE]", () => {
+					expect(req[REQ_TYPE]).toBe('HTTP');
+				});
+
+				it('with HTTP method as [METHOD]', () => {
+					expect(req[METHOD]).toBe('GET');
+				});
+
+				it('with URL as [URL]/[URL_STR]', () => {
+					// NB URL_STR is alias of URL (tested for above)
+					expect(req[URL_STR]).toBe('/abc/def?x=123&y=456');
+				});
+
+				it('with parsed URL object as [URL_OBJ]', () => {
+					expect(req[URL_OBJ]).toBeInstanceOf(URL);
+					expect(req[URL_OBJ].pathname).toBe('/abc/def');
+				});
+
+				it('with path as [PATH]', () => {
+					expect(req[PATH]).toBe('/abc/def');
+				});
+
+				it('with query string as [QUERY_STR]', () => {
+					expect(req[QUERY_STR]).toBe('?x=123&y=456');
+				});
+
+				it('with query object as [QUERY]', () => {
+					expect(req[QUERY]).toEqual({x: '123', y: '456'});
+				});
 			});
 
 			it('returns response to client', () => {
 				expect(axiosRes.status).toBe(200);
-				expect(axiosRes.data).toBe('serving /abc');
+				expect(axiosRes.data).toBe('serving /abc/def?x=123&y=456');
 			});
 		});
 
@@ -234,30 +276,61 @@ describe('methods', () => {
 				expect(route.handle).toHaveBeenCalledTimes(2);
 			});
 
-			it('calls .handle() with req', () => {
-				expect(route.handle).toHaveBeenCalledTimes(2);
-				const args = route.handle.mock.calls[1];
-				expect(args).toBeArrayOfSize(1);
-				const req = args[0];
-				expect(req).toBeInstanceOf(http.IncomingMessage);
-			});
+			describe('calls .handle() with request', () => {
+				let req;
+				beforeEach(() => {
+					// Sanity check
+					expect(route.handle).toHaveBeenCalledTimes(2);
 
-			it('calls .handle() with req.method', () => {
-				expect(route.handle).toHaveBeenCalledTimes(2);
-				const req = route.handle.mock.calls[1][0];
-				expect(req.method).toBe('GET');
-			});
+					const args = route.handle.mock.calls[1];
 
-			it('calls .handle() with req.url', () => {
-				expect(route.handle).toHaveBeenCalledTimes(2);
-				const req = route.handle.mock.calls[1][0];
-				expect(req.url).toBe('/def');
-			});
+					// Sanity check
+					expect(args).toBeArrayOfSize(1);
 
-			it('calls .handle() with req.res', () => {
-				expect(route.handle).toHaveBeenCalledTimes(2);
-				const req = route.handle.mock.calls[1][0];
-				expect(req.res).toBeInstanceOf(http.ServerResponse);
+					req = args[0];
+				});
+
+				it('object', () => {
+					expect(req).toBeObject();
+				});
+
+				it('with HTTP request as [REQ]', () => {
+					expect(req[REQ]).toBeInstanceOf(http.IncomingMessage);
+				});
+
+				it('with HTTP response as [RES]', () => {
+					expect(req[RES]).toBeInstanceOf(http.ServerResponse);
+				});
+
+				it("with 'HTTP' as [REQ_TYPE]", () => {
+					expect(req[REQ_TYPE]).toBe('HTTP');
+				});
+
+				it('with HTTP method as [METHOD]', () => {
+					expect(req[METHOD]).toBe('GET');
+				});
+
+				it('with URL as [URL]/[URL_STR]', () => {
+					// NB URL_STR is alias of URL (tested for above)
+					expect(req[URL_STR]).toBe('/def');
+				});
+
+				it('with parsed URL object as [URL_OBJ]', () => {
+					expect(req[URL_OBJ]).toBeInstanceOf(URL);
+					expect(req[URL_OBJ].pathname).toBe('/def');
+				});
+
+				it('with path as [PATH]', () => {
+					expect(req[PATH]).toBe('/def');
+				});
+
+				it('with query string as [QUERY_STR]', () => {
+					expect(req[QUERY_STR]).toBe('');
+				});
+
+				it('with query object as [QUERY]', () => {
+					expect(req[QUERY]).toEqual({});
+				});
 			});
 
 			it('returns response to client', () => {
