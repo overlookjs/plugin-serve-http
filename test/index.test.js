@@ -64,6 +64,10 @@ describe('methods', () => {
 			it('records HTTP server as [SERVER]', () => {
 				expect(route[SERVER]).toBeInstanceOf(http.Server);
 			});
+
+			it('starts server listening', () => {
+				expect(route[SERVER].listening).toBeTrue();
+			});
 		});
 
 		describe('starts server on port defined by [GET_PORT]', () => {
@@ -78,6 +82,10 @@ describe('methods', () => {
 
 			it('records HTTP server as [SERVER]', () => {
 				expect(route[SERVER]).toBeInstanceOf(http.Server);
+			});
+
+			it('starts server listening', () => {
+				expect(route[SERVER].listening).toBeTrue();
 			});
 		});
 
