@@ -361,8 +361,7 @@ describe('methods', () => {
 
 		it('clears [SERVER]', async () => {
 			await route[START]();
-			const server = route[SERVER];
-			expect(route[SERVER]).toBe(server);
+			expect(route[SERVER]).not.toBeUndefined();
 			await route[STOP]();
 			expect(route[SERVER]).toBeUndefined();
 		});
