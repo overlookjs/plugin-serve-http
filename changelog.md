@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.2
+
+Features:
+
+* ESM export
+
+Improvements:
+
+* `[GET_PORT]` return undefined by default
+
+Dependencies:
+
+* Update `@overlook` dependencies
+
+Dev:
+
+* Update dev dependencies
+
 ## 0.3.1
 
 Features:
