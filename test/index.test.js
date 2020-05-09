@@ -57,9 +57,9 @@ const ServerRoute = Route.extend(serveHttpPlugin);
 
 describe('methods', () => {
 	let route;
-	beforeEach(() => {
+	beforeEach(async () => {
 		route = new ServerRoute();
-		route.init();
+		await route.init();
 	});
 
 	describe('[START]', () => {
@@ -118,7 +118,7 @@ describe('methods', () => {
 				child2[START_ROUTE] = spy(() => deferred2.promise);
 				route.attachChild(child2);
 
-				route.init();
+				await route.init();
 				promise = route[START]();
 			});
 
@@ -375,7 +375,7 @@ describe('methods', () => {
 			route.attachChild(child);
 
 			route[PORT] = TEST_PORT;
-			route.init();
+			await route.init();
 			await route[START]();
 			const server = route[SERVER];
 

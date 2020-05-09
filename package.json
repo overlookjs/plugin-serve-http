@@ -17,10 +17,10 @@
     "url": "https://github.com/overlookjs/plugin-serve-http/issues"
   },
   "dependencies": {
-    "@overlook/plugin": "^0.2.3",
-    "@overlook/plugin-request": "^0.1.0",
-    "@overlook/plugin-start": "^0.1.2",
-    "@overlook/route": "^0.5.1",
+    "@overlook/plugin": "^0.2.6",
+    "@overlook/plugin-request": "^0.1.1",
+    "@overlook/plugin-start": "^0.1.3",
+    "@overlook/route": "^0.6.2",
     "is-it-type": "^4.0.0",
     "on-finished": "^2.3.0"
   },
