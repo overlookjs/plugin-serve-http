@@ -149,7 +149,9 @@ describe('methods', () => {
 		});
 
 		it('errors if [PORT] and [GET_PORT] undefined', async () => {
-			await expect(route[START]()).rejects.toThrow('Port must be a number - received null');
+			await expect(route[START]()).rejects.toThrow(
+				'Port must be a positive integer - received undefined'
+			);
 		});
 
 		it('errors if port already in use', async () => {
