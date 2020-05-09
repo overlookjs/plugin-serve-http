@@ -3,9 +3,19 @@
   "version": "0.3.1",
   "description": "Overlook framework HTTP server plugin",
   "main": "index.js",
+  "module": "es/index.js",
+  "exports": {
+    ".": {
+      "import": "./es/index.js",
+      "require": "./index.js"
+    },
+    "./es": "./es/index.js"
+  },
   "files": [
-    "lib/**/*.js"
+    "lib/**/*.js",
+    "es/**/*.js"
   ],
+  "sideEffects": false,
   "author": {
     "name": "Overlook Motel"
   },
@@ -40,7 +50,8 @@
     "eslint-plugin-node": "^11.1.0",
     "jest": "^26.0.1",
     "jest-extended": "^0.11.5",
-    "p-defer": "^3.0.0"
+    "p-defer": "^3.0.0",
+    "parse-node-version": "^1.0.1"
   },
   "keywords": [
     "overlook",
@@ -51,13 +62,13 @@
   ],
   "scripts": {
     "test": "npm run lint && npm run test-main",
-    "lint": "eslint '*.js' '.*.js' '**/*.js' '**/.*.js'",
-    "lint-fix": "eslint '*.js' '.*.js' '**/*.js' '**/.*.js' --fix",
-    "test-main": "jest",
-    "test-prod": "cross-env NODE_ENV=production jest",
+    "lint": "eslint . --ext 'js,mjs'",
+    "lint-fix": "eslint . --ext 'js,mjs' --fix",
+    "test-main": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test-prod": "cross-env NODE_ENV=production npm run test-main",
     "cover": "npm run cover-main && rm -rf coverage",
     "coveralls": "npm run cover-main && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
-    "cover-main": "cross-env COVERAGE=true NODE_ENV=production jest --coverage",
+    "cover-main": "cross-env COVERAGE=true node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "ci": "if [ $COVERAGE ]; then npm run coveralls; else npm test; fi"
   },
   "engines": {
