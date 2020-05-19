@@ -36,21 +36,6 @@ describe('plugin', () => {
 	it('is a Plugin', () => {
 		expect(serveHttpPlugin).toBeInstanceOf(Plugin);
 	});
-
-	describe('exposes symbols', () => {
-		it.each([
-			'SERVER', 'PORT', 'GET_PORT',
-			'REQ', 'RES', 'METHOD', 'URL', 'URL_OBJ', 'QUERY_STR', 'QUERY',
-			'SOCKETS', 'IS_IDLE', 'IS_STOPPING'
-		])('%s', (name) => {
-			expect(typeof serveHttpPlugin[name]).toBe('symbol');
-		});
-
-		it('URL_STR (alias of URL)', () => { // eslint-disable-line jest/lowercase-name
-			expect(typeof serveHttpPlugin.URL_STR).toBe('symbol');
-			expect(serveHttpPlugin.URL_STR).toBe(serveHttpPlugin.URL);
-		});
-	});
 });
 
 const ServerRoute = Route.extend(serveHttpPlugin);
