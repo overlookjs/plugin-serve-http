@@ -36,6 +36,11 @@ describe('plugin', () => {
 	it('is a Plugin', () => {
 		expect(serveHttpPlugin).toBeInstanceOf(Plugin);
 	});
+
+	it('when passed to `Route.extend()`, returns subclass of Route', () => {
+		const ServeHttpRoute = Route.extend(serveHttpPlugin);
+		expect(ServeHttpRoute).toBeSubclassOf(Route);
+	});
 });
 
 const ServerRoute = Route.extend(serveHttpPlugin);

@@ -16,7 +16,7 @@ module.exports = {
 	testEnvironment: 'node',
 	coverageDirectory: 'coverage',
 	collectCoverageFrom: ['index.js', 'lib/**/*.js', 'es/**/*.js'],
-	setupFilesAfterEnv: ['jest-extended'],
+	setupFilesAfterEnv: ['jest-extended', 'jest-expect-subclass'],
 	moduleNameMapper: {
 		'^@overlook/plugin-serve-http($|/.*)': '<rootDir>$1'
 	},
