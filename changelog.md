@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.3.3
+
+Bug fixes:
+
+* ESM export `URL` symbol
+
+Refactor:
+
+* Shorten code
+
+Dependencies:
+
+* Update `@overlook/route` + `@overlook/plugin` dependencies
+* Update plugin dependencies
+
+Tests:
+
+* Test plugin subclasses input
+* Move symbols tests into `exports.js`
+
+Dev:
+
+* Update dev dependencies
+
 ## 0.3.2
 
 Features:
