@@ -15,6 +15,7 @@ export const {
 	GET_PORT,
 	REQ,
 	RES,
+	URL,
 	URL_STR,
 	URL_OBJ,
 	METHOD,

@@ -18,6 +18,7 @@ module.exports = function itExports(serveHttpPlugin) {
 			'GET_PORT',
 			'REQ',
 			'RES',
+			'URL',
 			'URL_OBJ',
 			'METHOD',
 			'QUERY_STR',
