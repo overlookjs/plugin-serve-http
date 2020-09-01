@@ -55,10 +55,10 @@ const router = new HttpOnPort3000Route();
 
 `plugin-serve-http` uses [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start).
 
-Start the server by using `[START]()` method provided by [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start).
+Start the server by using `[START]()` method (re-exported from [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start)).
 
 ```js
-const { START } = require('@overlook/plugin-start');
+const { START } = require('@overlook/plugin-serve-http');
 await router[START]();
 ```
 
@@ -66,10 +66,10 @@ Server will be started up last, after any child routes with `[START_ROUTE]()` me
 
 ### Stop server
 
-Stop the server by using `[STOP]()` method provided by [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start).
+Stop the server by using `[STOP]()` method (re-exported from [@overlook/plugin-start](https://www.npmjs.com/package/@overlook/plugin-start)).
 
 ```js
-const { STOP } = require('@overlook/plugin-start');
+const { STOP } = require('@overlook/plugin-serve-http');
 await router[STOP]();
 ```
 

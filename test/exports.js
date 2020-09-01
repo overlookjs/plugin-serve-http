@@ -26,6 +26,15 @@ module.exports = function itExports(serveHttpPlugin) {
 			'SOCKETS',
 			'IS_IDLE',
 			'IS_STOPPING',
+			// From @overlook/plugin-start
+			'START',
+			'START_ROUTE',
+			'START_CHILDREN',
+			'STOP',
+			'STOP_ROUTE',
+			'STOP_CHILDREN',
+			'START_STATE',
+			// From @overlook/plugin-request
 			'REQ_TYPE',
 			'PATH'
 		])('%s', (key) => {
