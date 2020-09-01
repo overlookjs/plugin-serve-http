@@ -93,7 +93,7 @@ Request objects have the following properties:
 * `[QUERY_STR]`: Request query string e.g. `'?foo=bar'`
 * `[QUERY]`: Query object e.g. `{ foo: 'bar' }`
 
-All the above symbols (`[REQ]` etc) are exported as properties of this plugin, except `[REQ_TYPE]` and `[PATH]` which are exported by [@overlook/plugin-request](https://www.npmjs.com/package/@overlook/plugin-request).
+All the above symbols (`[REQ]` etc) are exported as properties of this plugin. `[REQ_TYPE]` and `[PATH]` are re-exported from [@overlook/plugin-request](https://www.npmjs.com/package/@overlook/plugin-request).
 
 Typically, you'd use something like [@overlook/plugin-path](https://www.npmjs.com/package/@overlook/plugin-path) to handle requests, but you can write your own handler too.
 

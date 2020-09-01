@@ -23,5 +23,7 @@ export const {
 	QUERY,
 	SOCKETS,
 	IS_IDLE,
-	IS_STOPPING
+	IS_STOPPING,
+	REQ_TYPE,
+	PATH
 } = serveHttpPlugin;

@@ -25,7 +25,9 @@ module.exports = function itExports(serveHttpPlugin) {
 			'QUERY',
 			'SOCKETS',
 			'IS_IDLE',
-			'IS_STOPPING'
+			'IS_STOPPING',
+			'REQ_TYPE',
+			'PATH'
 		])('%s', (key) => {
 			expect(typeof serveHttpPlugin[key]).toBe('symbol');
 		});

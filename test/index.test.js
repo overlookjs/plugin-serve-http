@@ -13,12 +13,12 @@ const http = require('http'),
 	Plugin = require('@overlook/plugin'),
 	startPlugin = require('@overlook/plugin-start'),
 	{START, STOP, START_ROUTE, STOP_ROUTE} = startPlugin,
-	{REQ_TYPE, PATH} = require('@overlook/plugin-request'),
 	axios = require('axios'),
 	serveHttpPlugin = require('@overlook/plugin-serve-http');
 
 const {
-	SERVER, PORT, GET_PORT, REQ, RES, METHOD, URL_STR, URL_OBJ, QUERY_STR, QUERY
+	SERVER, PORT, GET_PORT, REQ, RES, METHOD, URL_STR, URL_OBJ, QUERY_STR, QUERY,
+	REQ_TYPE, PATH
 } = serveHttpPlugin;
 
 // Imports
